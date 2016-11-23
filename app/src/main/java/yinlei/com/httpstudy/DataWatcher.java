@@ -17,8 +17,5 @@ public abstract class DataWatcher implements Observer {
 
     public abstract void notifyUpdate(DownloadEntry data);
 
-    public int progress;
-    public int totalLength;
-    public int curentLength;
 }
 

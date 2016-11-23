@@ -12,7 +12,13 @@ public class DownloadEntry implements Serializable {
     public String name;
     public String url;
 
-    public enum DownloadStatus{waiting,downloading,pause,resume,cancel}
+
+    public int progress;
+    public int totalLength;
+    public int curentLength;
+
+
+    public enum DownloadStatus{waiting,downloading,pause,resume,cancel,complete}
 
     public DownloadStatus mStatus;
 
