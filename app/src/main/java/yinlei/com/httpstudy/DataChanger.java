@@ -8,20 +8,25 @@ import java.util.Observable;
 
 public class DataChanger extends Observable {
 
-    private static  DataChanger mInstance;
+    private static DataChanger mInstance;
 
-    private DataChanger(){
+    private DataChanger() {
 
     }
 
-    public synchronized static DataChanger getmInstance(){
-        if (mInstance == null){
+    /**
+     * 获取到对象
+     *
+     * @return
+     */
+    public synchronized static DataChanger getmInstance() {
+        if (mInstance == null) {
             mInstance = new DataChanger();
         }
         return mInstance;
     }
 
-    public void postStatus(DownloadEntry entry){
+    public void postStatus(DownloadEntry entry) {
         setChanged();
         notifyObservers(entry);
     }

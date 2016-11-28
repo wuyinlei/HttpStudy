@@ -17,7 +17,7 @@ public class DownloadManager {
         mContext = context;
     }
 
-    public synchronized DownloadManager getInstance(Context context){
+    public static synchronized DownloadManager getInstance(Context context){
         if (sDownloadManager == null){
             sDownloadManager = new DownloadManager(context);
         }

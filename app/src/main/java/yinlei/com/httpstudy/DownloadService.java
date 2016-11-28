@@ -2,7 +2,9 @@ package yinlei.com.httpstudy;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
@@ -13,7 +15,21 @@ public class DownloadService extends Service {
     private HashMap<String, DownloadTask> mDownloadTaskHashMap = new HashMap<>();
     private ExecutorService mExecutorService;
 
+    private Handler mHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            DataChanger.getmInstance().postStatus((DownloadEntry) msg.obj);
+        }
+    };
+
     public DownloadService() {
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mHandler.removeCallbacksAndMessages(this);
     }
 
     @Override
@@ -70,7 +86,7 @@ public class DownloadService extends Service {
     }
 
     private void resumeDownload(DownloadEntry entry) {
-startDownload(entry);
+        startDownload(entry);
     }
 
     private void pauseDownload(DownloadEntry entry) {
@@ -81,7 +97,7 @@ startDownload(entry);
     }
 
     private void startDownload(DownloadEntry entry) {
-        DownloadTask downloadTask = new DownloadTask(entry);
+        DownloadTask downloadTask = new DownloadTask(entry,mHandler);
         mDownloadTaskHashMap.put(entry.id, downloadTask);
         //downloadTask.start();
         mExecutorService.execute(downloadTask);
