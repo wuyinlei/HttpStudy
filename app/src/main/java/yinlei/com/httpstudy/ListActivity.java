@@ -110,7 +110,8 @@ public class ListActivity extends AppCompatActivity {
                     if (entry.mStatus == DownloadEntry.DownloadStatus.idle){
                       //  entry.mStatus = DownloadEntry.DownloadStatus.downloading;
                         mDownloadManager.add(ListActivity.this,entry);
-                    } else if (entry.mStatus == DownloadEntry.DownloadStatus.downloading){
+                    } else if (entry.mStatus == DownloadEntry.DownloadStatus.downloading
+                    || entry.mStatus == DownloadEntry.DownloadStatus.waiting){
                         mDownloadManager.pause(entry);
                     } else if (entry.mStatus == DownloadEntry.DownloadStatus.paused){
                         mDownloadManager.resume(entry);

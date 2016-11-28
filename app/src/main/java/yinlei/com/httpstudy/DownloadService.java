@@ -9,19 +9,43 @@ import android.os.Message;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public class DownloadService extends Service {
 
     private HashMap<String, DownloadTask> mDownloadTaskHashMap = new HashMap<>();
     private ExecutorService mExecutorService;
 
-    private Handler mHandler = new Handler(){
+    //任务队列  这里手动的去维护三个线程,来提高效率,控制最大下载数
+    private LinkedBlockingDeque<DownloadEntry> mWaitingQueue = new LinkedBlockingDeque<>();
+
+    private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+            DownloadEntry entry = (DownloadEntry) msg.obj;
+            switch (entry.mStatus) {
+                case idle:
+                case complete:
+                case paused:
+                    checkNext(entry);
+                    break;
+            }
             DataChanger.getmInstance().postStatus((DownloadEntry) msg.obj);
         }
     };
+
+    /**
+     * 检查下一个任务
+     *
+     * @param entry DownloadEntry
+     */
+    private void checkNext(DownloadEntry entry) {
+        DownloadEntry newEntry = mWaitingQueue.poll();
+        if (newEntry != null) {
+            startDownload(newEntry);
+        }
+    }
 
     public DownloadService() {
     }
@@ -42,6 +66,7 @@ public class DownloadService extends Service {
     public void onCreate() {
         super.onCreate();
         mExecutorService = Executors.newCachedThreadPool();
+
     }
 
     @Override
@@ -62,7 +87,7 @@ public class DownloadService extends Service {
 
         switch (action) {
             case Constants.KEY_DOWNLOAD_ACTION_ADD:
-                startDownload(entry);
+                addDownload(entry);
                 break;
             case Constants.KEY_DOWNLOAD_ACTION_PAUSE:
                 pauseDownload(entry);
@@ -78,26 +103,70 @@ public class DownloadService extends Service {
 
     }
 
+    /**
+     * 添加到请求队列
+     *
+     * @param entry DownloadEntry
+     */
+    private void addDownload(DownloadEntry entry) {
+        if (mDownloadTaskHashMap.size() >= Constants.MAX_DOWNLOAD_TASKS) {
+            mWaitingQueue.offer(entry);
+            //添加到队列中,状态改为waiting
+            entry.mStatus = DownloadEntry.DownloadStatus.waiting;
+            DataChanger.getmInstance().postStatus(entry); //通知更新
+        } else {
+            startDownload(entry);
+        }
+    }
+
+    /**
+     * 取消任务
+     *
+     * @param entry DownloadEntry
+     */
     private void cancelDownload(DownloadEntry entry) {
         DownloadTask task = mDownloadTaskHashMap.remove(entry.id);
         if (task != null) {
             task.cancel();
+        } else {
+            mWaitingQueue.remove(entry);
+            entry.mStatus = DownloadEntry.DownloadStatus.cancel;
+            DataChanger.getmInstance().postStatus(entry);
         }
     }
 
+    /**
+     * 恢复下载任务
+     *
+     * @param entry DownloadEntry
+     */
     private void resumeDownload(DownloadEntry entry) {
-        startDownload(entry);
+        addDownload(entry);
     }
 
+    /**
+     * 取消任务
+     *
+     * @param entry DownloadEntry
+     */
     private void pauseDownload(DownloadEntry entry) {
         DownloadTask task = mDownloadTaskHashMap.remove(entry.id);
         if (task != null) {
             task.pause();
+        } else {
+            mWaitingQueue.remove(entry);
+            entry.mStatus = DownloadEntry.DownloadStatus.paused;
+            DataChanger.getmInstance().postStatus(entry);
         }
     }
 
+    /**
+     * 开始下载任务
+     *
+     * @param entry DownloadEntry
+     */
     private void startDownload(DownloadEntry entry) {
-        DownloadTask downloadTask = new DownloadTask(entry,mHandler);
+        DownloadTask downloadTask = new DownloadTask(entry, mHandler);
         mDownloadTaskHashMap.put(entry.id, downloadTask);
         //downloadTask.start();
         mExecutorService.execute(downloadTask);
