@@ -3,6 +3,8 @@ package yinlei.com.httpstudy;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -109,7 +111,7 @@ public class ListActivity extends AppCompatActivity {
                 public void onClick(View view) {
                     if (entry.mStatus == DownloadEntry.DownloadStatus.idle){
                       //  entry.mStatus = DownloadEntry.DownloadStatus.downloading;
-                        mDownloadManager.add(ListActivity.this,entry);
+                        mDownloadManager.add(entry);
                     } else if (entry.mStatus == DownloadEntry.DownloadStatus.downloading
                     || entry.mStatus == DownloadEntry.DownloadStatus.waiting){
                         mDownloadManager.pause(entry);
@@ -127,5 +129,22 @@ public class ListActivity extends AppCompatActivity {
     class ViewHolder {
         private Button mDownloadBtn;
         TextView mDownloadLabel;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.start){
+            mDownloadManager.recoverAll();
+        } else if (id == R.id.over){
+            mDownloadManager.pauseAll();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu,menu);
+        return true;
     }
 }

@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mEntry.url = "http://api.wuyinlei.com/uploads/test.jpg";
                     mEntry.id = "1";
                     mEntry.mStatus = DownloadEntry.DownloadStatus.downloading;
-                    mDownloadManager.add(this, mEntry);  //添加到下载
+                    mDownloadManager.add( mEntry);  //添加到下载
                 }
 
                 break;

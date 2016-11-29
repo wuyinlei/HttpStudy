@@ -13,4 +13,6 @@ public class Constants {
     public static final int KEY_DOWNLOAD_ACTION_RESUME = 0X3;
     public static final int  KEY_DOWNLOAD_ACTION_CANCEL = 0x4;
     public static final int MAX_DOWNLOAD_TASKS = 3;
+    public static final int KEY_DOWNLOAD_ACTION_PAUSE_ALL = 0x5;
+    public static final int KEY_DOWNLOAD_ACTION_RECOVER_ALL = 0X6;
 }
